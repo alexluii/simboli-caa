@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Simboli CAA">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffd84d">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<title>Simboli CAA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: calmo, chiaro, affettuoso: uno strumento da usare ogni giorno, non una vetrina
+   IDEA: la striscia di comunicazione CAA, cartoncini plastificati con il bordo colorato
+   PICTURE: la frase stessa, trasformata in cartoncini grandi subito sotto la casella
+   COLOUR and TYPE: giallo "persone" come fascia, bordi chiave Fitzgerald; Atkinson Hyperlegible
+   LAYOUT: una colonna: casella, striscia, comandi, tabella simboli, legenda */
+:root{color-scheme:light dark;--bg:light-dark(#fffdf6,#14161a);--ink:light-dark(#16181c,#f1f1ee);--soft:light-dark(#f2eee2,#1f2228);--line:light-dark(#ddd6c4,#343842);--band:#ffd84d;--card:156px;
+--p:#f2c200;--v:#3fae49;--n:#f08a24;--a:#2f8fe0;--s:#e8559a;--q:#8a5cd6;--f:#9aa3ad}
+:root.size-S{--card:104px}:root.size-L{--card:204px}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.5 "Atkinson Hyperlegible",system-ui,-apple-system,sans-serif;overflow-x:clip;-webkit-tap-highlight-color:transparent}
+.band{padding:clamp(18px,3vw,40px) max(5vw,16px)}
+.wrap{max-width:1240px;margin:0 auto}
+header{background:var(--band);color:#16181c}
+header .wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:space-between}
+h1{font-size:clamp(30px,6vw,46px);line-height:1.05;margin:0;letter-spacing:-.01em}
+header p{margin:4px 0 0;font-size:17px}
+h2{font-size:26px;line-height:1.1;margin:0 0 14px}
+textarea{width:100%;font:inherit;font-size:22px;line-height:1.35;padding:14px 16px;border:3px solid var(--ink);border-radius:16px;background:light-dark(#fff,#0f1114);color:var(--ink);resize:vertical;min-height:84px}
+textarea:focus-visible,button:focus-visible{outline:4px solid var(--a);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 0}
+.chip{font:inherit;font-size:15px;border:2px solid var(--line);background:var(--soft);color:var(--ink);border-radius:999px;padding:8px 14px;min-height:44px;cursor:pointer}
+.tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px}
+.btn{font:inherit;font-weight:700;font-size:16px;min-height:48px;padding:0 18px;border-radius:14px;border:2px solid var(--ink);background:var(--bg);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+.btn.main{background:var(--ink);color:var(--bg)}
+.btn[aria-pressed=true]{background:var(--band);color:#16181c;border-color:#16181c}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:14px;overflow:hidden}
+.seg button{font:inherit;font-weight:700;min-height:44px;min-width:48px;border:0;background:var(--bg);color:var(--ink);cursor:pointer}
+.seg button[aria-pressed=true]{background:var(--ink);color:var(--bg)}
+.strip{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px;min-height:calc(var(--card) + 40px);padding:14px;border-radius:20px;background:var(--soft);align-content:flex-start}
+.empty{margin:auto;color:light-dark(#6b6658,#9a9ea8);text-align:center;font-size:17px}
+.card{width:var(--card);flex:none;display:flex;flex-direction:column;align-items:stretch;padding:0;border:6px solid var(--f);border-radius:16px;background:#fff;color:#16181c;cursor:pointer;font:inherit;overflow:hidden;box-shadow:0 2px 0 rgba(0,0,0,.12);transition:transform .15s}
+.card:active,.card.say{transform:scale(.95)}
+.pic{display:block;aspect-ratio:1;padding:8%;background:#fff}
+.pic svg,.pic img{width:100%;height:100%;display:block;object-fit:cover;border-radius:6px}
+.lab{display:block;padding:4px 4px 8px;text-align:center;font-weight:700;font-size:calc(var(--card)*.13);line-height:1.1;overflow-wrap:anywhere}
+.maiu .lab,.maiu .fwt{text-transform:uppercase}
+.card.fw{width:auto;min-width:calc(var(--card)*.55);border-style:dashed;justify-content:center}
+.fwt{padding:0 14px;font-size:calc(var(--card)*.2);font-weight:700;text-align:center}
+.card.unk{border-style:dashed;border-color:#16181c}
+.unk .pic{display:grid;place-items:center;color:#8a8577;font-size:calc(var(--card)*.12);text-align:center;line-height:1.2}
+.c-p{border-color:var(--p)}.c-v{border-color:var(--v)}.c-n{border-color:var(--n)}.c-a{border-color:var(--a)}.c-s{border-color:var(--s)}.c-q{border-color:var(--q)}
+.edit .card{outline:3px dashed var(--a);outline-offset:3px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:thin}
+.tab{flex:none;font:inherit;font-weight:700;font-size:16px;min-height:46px;padding:0 16px;border-radius:12px;border:3px solid var(--t,var(--line));background:var(--bg);color:var(--ink);cursor:pointer}
+.tab[aria-selected=true]{background:var(--t);color:#16181c}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.grid .card{width:auto}.grid .lab{font-size:15px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;font-size:15px;margin:18px 0 0;padding:0;list-style:none}
+.legend li{display:flex;align-items:center;gap:8px}.legend i{width:18px;height:18px;border-radius:5px;border:4px solid}
+footer{font-size:14px;color:light-dark(#5f5a4d,#a0a4ad)}footer p{margin:0 0 6px;max-width:70ch}
+footer a{color:inherit}
+.note{font-size:15px;margin:10px 0 0;color:light-dark(#5f5a4d,#a0a4ad)}
+/* modalità grande: solo la striscia */
+.big header,.big .hide-big{display:none}
+.big .strip{margin:0;min-height:100vh;border-radius:0;align-content:center;justify-content:center;--card:min(42vw,240px)}
+.exit{display:none;position:fixed;top:12px;right:12px;z-index:5}
+.big .exit{display:inline-flex}
+/* foglio modifica */
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center;z-index:10}
+.sheet.open{display:flex}
+.sheet>div{background:var(--bg);color:var(--ink);width:min(520px,100%);border-radius:22px 22px 0 0;padding:22px 20px calc(22px + env(safe-area-inset-bottom));display:grid;gap:12px}
+.sheet h3{margin:0;font-size:22px}.sheet p{margin:0}
+.sheet .btn{justify-content:center}
+@media(min-width:700px){.sheet{align-items:center}.sheet>div{border-radius:22px}}
+@media(max-width:600px){:root{--card:calc((100vw - 86px)/3)}:root.size-S{--card:calc((100vw - 98px)/4)}:root.size-L{--card:calc((100vw - 74px)/2)}textarea{font-size:20px}.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+</head>
+<body>
+<button class="btn main exit" id="exit" type="button">Chiudi</button>
+<header class="band"><div class="wrap">
+  <div><h1>Simboli CAA</h1><p>Scrivi una frase, ottieni i simboli. Tocca un simbolo per sentirlo.</p></div>
+</div></header>
+
+<main>
+<section class="band" style="padding-bottom:8px"><div class="wrap">
+  <label for="frase" class="hide-big" style="font-weight:700;display:block;margin-bottom:8px">La tua frase</label>
+  <textarea id="frase" class="hide-big" rows="2" placeholder="Per esempio: io voglio bere acqua" autocomplete="off" autocapitalize="none" spellcheck="false"></textarea>
+  <div class="chips hide-big" id="esempi"></div>
+  <div class="strip" id="strip" aria-live="polite"></div>
+  <div class="tools hide-big">
+    <button class="btn main" id="leggi" type="button">Leggi la frase</button>
+    <button class="btn" id="grande" type="button">Mostra grande</button>
+    <button class="btn" id="svuota" type="button">Svuota</button>
+    <button class="btn" id="maiu" type="button" aria-pressed="true">MAIUSCOLO</button>
+    <button class="btn" id="art" type="button" aria-pressed="true">Articoli</button>
+    <button class="btn" id="mod" type="button" aria-pressed="false">Personalizza</button>
+    <span class="seg" role="group" aria-label="Dimensione simboli"><button type="button" data-s="S">S</button><button type="button" data-s="M">M</button><button type="button" data-s="L">L</button></span>
+  </div>
+  <p class="note hide-big" id="nota"></p>
+</div></section>
+
+<section class="band hide-big"><div class="wrap">
+  <h2>Tabella dei simboli</h2>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div class="grid" id="grid"></div>
+  <ul class="legend" id="legend"></ul>
+</div></section>
+</main>
+
+<footer class="band hide-big"><div class="wrap">
+  <p>Colori dei bordi secondo la chiave Fitzgerald, usata in CAA. I simboli disegnati sono originali di questa app; con “Personalizza” puoi sostituirli con foto vere (restano salvate su questo telefono).</p>
+  <p id="aras-credit" hidden>Pittogrammi aggiuntivi: autore Sergio Palao. Origine: <a href="https://arasaac.org">ARASAAC</a>. Licenza CC BY-NC-SA. Proprietà: Governo di Aragona (Spagna).</p>
+</div></footer>
+
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-t"><div>
+  <h3 id="sh-t"></h3>
+  <p id="sh-p"></p>
+  <button class="btn main" id="sh-foto" type="button">Scegli una foto</button>
+  <button class="btn" id="sh-via" type="button">Togli la foto</button>
+  <button class="btn" id="sh-chiudi" type="button">Chiudi</button>
+  <input type="file" id="file" accept="image/*" hidden>
+</div></div>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const SK='#ffd9b8';
+const svg=b=>`<svg viewBox="0 0 100 100" aria-hidden="true"><g stroke="#16181c" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round">${b}</g></svg>`;
+const HS='<path d="M-9 18q0-11 9-11t9 11q-9-5-18 0z" fill="#5a3a1e"/>';
+const HL='<path d="M-11 32V18q0-13 11-13t11 13v14z" fill="#c9822f"/>';
+const DR='<path d="M0 36l-14 28h28z" fill="#ff9ec7"/>';
+const P=(x,s=1,o={})=>`<g transform="translate(${x} ${((1-s)*88).toFixed(1)}) scale(${s})">${o.back||''}<path d="M0 29v29M0 58l-10 26M0 58l10 26${o.arms||'M-16 52L0 38 16 52'}"/>${o.dress||''}<circle cy="20" r="9" fill="${SK}"/>${o.front||''}</g>`;
+const hand=(t='')=>`<g transform="${t}" fill="${SK}">${[31,41,51,61].map((x,i)=>`<rect x="${x}" y="${[22,14,16,24][i]}" width="9" height="40" rx="4.5"/>`).join('')}<rect x="17" y="44" width="9" height="28" rx="4.5" transform="rotate(-38 21 66)"/><rect x="29" y="44" width="42" height="42" rx="13"/></g>`;
+const face=(i,f='#ffd84d')=>`<circle cx="50" cy="50" r="38" fill="${f}"/>${i}`;
+const EY='<circle cx="37" cy="42" r="4" fill="#16181c"/><circle cx="63" cy="42" r="4" fill="#16181c"/>';
+const Q=b=>`<text x="6" y="56" font-size="54" font-weight="900" font-family="Arial,sans-serif" fill="#8a5cd6" stroke="none">?</text>${b}`;
+const HEART=(x,y,s,c='#e8455a')=>`<path transform="translate(${x} ${y}) scale(${s})" d="M0 14L-12 2a7 7 0 0 1 12-9 7 7 0 0 1 12 9z" fill="${c}"/>`;
+const ARROW='<path d="M88 44H66m8-8-8 8 8 8" stroke="#e8455a" stroke-width="5"/>';
+const BED='<path d="M8 44v42M92 64v22"/><rect x="8" y="66" width="84" height="10" fill="#fff"/>';
+
+const CAT={p:'Persone',v:'Azioni',n:'Cose e luoghi',a:'Come sta, com\'è',s:'Sociale',q:'Domande'};
+const V=[
+['io','p','mi me',P(42)+ARROW],
+['tu','p','ti te',P(26,.85)+'<path d="M44 46h20m-8-8 8 8-8 8" stroke="#e8455a" stroke-width="5"/>'+P(78,1,{front:HS})],
+['lui','p','',P(50,1,{front:HS})],
+['lei','p','',P(50,1,{back:HL,dress:DR})],
+['noi','p','ci',P(22,.8,{back:HL,dress:DR})+P(50,1,{front:HS})+P(78,.8)],
+['mamma','p','madre',P(36,1,{arms:'M-16 52L0 38 20 48',back:HL,dress:DR})+P(70,.6)],
+['papà','p','papa babbo padre',P(36,1,{arms:'M-16 52L0 38 20 48',front:HS})+P(70,.6)],
+['amico','p','amica amici amiche',P(30,1,{arms:'M-16 52L0 38 18 50'})+P(70,1,{arms:'M-18 50L0 38 16 52',back:HL,dress:DR})+HEART(50,14,1.1)],
+['maestra','p','maestro maestre maestri insegnante',`<rect x="44" y="12" width="50" height="36" fill="#2f6b4f"/><path d="M52 24h22M52 36h32" stroke="#fff"/>`+P(24,1,{arms:'M-16 52L0 38 22 30',back:HL,dress:DR})],
+['dottore','p','dottoressa medico',P(40,1,{front:HS,dress:'<path d="M0 34l-12 30h24z" fill="#fff"/>'})+'<path d="M80 14v22M69 25h22" stroke="#e8455a" stroke-width="8"/>'],
+
+['volere','v','voglio vuoi vuole vogliamo volete vogliono vorrei volevo',P(32,1,{arms:'M0 38l26 2M0 38l26 12'})+'<circle cx="80" cy="46" r="11" fill="#ffd84d"/>'+HEART(80,16,1)],
+['essere','v','è sono sei siamo siete ero era stare sto stai sta stiamo','<path d="M22 40h56M22 62h56" stroke-width="10"/>'],
+['avere','v','ho hai ha abbiamo avete hanno','<rect x="30" y="30" width="40" height="34" fill="#f08a24"/><path d="M50 30v34M30 44h40"/><path d="M12 66q18 14 38 4 20 10 38-4"/>'],
+['mangiare','v','mangio mangi mangia mangiamo mangiate mangiano mangiato',face('<circle cx="30" cy="40" r="4" fill="#16181c"/><circle cx="50" cy="40" r="4" fill="#16181c"/><circle cx="42" cy="62" r="8" fill="#a33"/>','#ffd9b8').replace('cx="50" cy="50" r="38"','cx="40" cy="50" r="32"')+'<path d="M52 62l38 18" stroke-width="5"/><ellipse cx="50" cy="61" rx="8" ry="5" fill="#ccc"/>'],
+['bere','v','bevo bevi beve beviamo bevete bevono bevuto',face('<circle cx="30" cy="40" r="4" fill="#16181c"/><circle cx="50" cy="40" r="4" fill="#16181c"/><path d="M46 64h8"/>','#ffd9b8').replace('cx="50" cy="50" r="38"','cx="40" cy="50" r="32"')+'<path d="M58 40h28l-5 46H63z" fill="#bfe6ff"/><path d="M60 56h24" stroke="#2f8fe0"/>'],
+['andare','v','vado vai va andiamo andate vanno andato andata',P(32,1,{arms:'M-16 54L0 38 14 46'})+'<path d="M56 70h34m-9-9 9 9-9 9" stroke="#3fae49" stroke-width="6"/>'],
+['giocare','v','gioco giochi gioca giochiamo giocano giocato',P(34)+'<circle cx="76" cy="72" r="13" fill="#ff5a5a"/><path d="M64 68q12 6 24 0M76 59v26"/>'],
+['dormire','v','dormo dormi dorme dormiamo dormono dormito',BED+'<rect x="30" y="52" width="60" height="16" rx="7" fill="#7fb2ff"/><circle cx="20" cy="58" r="9" fill="'+SK+'"/><text x="54" y="38" font-size="24" font-weight="900" font-family="Arial" fill="#16181c" stroke="none">z z</text>'],
+['guardare','v','guardo guardi guarda guardiamo vedere vedo vedi vede','<path d="M8 50q42-38 84 0-42 38-84 0z" fill="#fff"/><circle cx="50" cy="50" r="14" fill="#2f8fe0"/><circle cx="50" cy="50" r="5" fill="#16181c"/>'],
+['ascoltare','v','ascolto ascolti ascolta sentire sento senti sente','<path d="M36 74q-16-4-16-30a24 24 0 0 1 48 0c0 14-12 16-12 28 0 10-9 14-17 10" fill="'+SK+'"/><path d="M38 44a8 8 0 0 1 16 0c0 7-7 8-7 14"/><path d="M78 36q6 10 0 20M86 28q12 18 0 36" stroke="#2f8fe0"/>'],
+['parlare','v','parlo parli parla parliamo dire dico',face('<circle cx="30" cy="44" r="4" fill="#16181c"/><circle cx="46" cy="44" r="4" fill="#16181c"/><ellipse cx="38" cy="64" rx="8" ry="5" fill="#a33"/>','#ffd9b8').replace('cx="50" cy="50" r="38"','cx="38" cy="56" r="28"')+'<path d="M58 10h34v26H74l-9 9v-9h-7z" fill="#fff"/>'],
+['aiutare','v','aiuto aiuti aiuta aiutami aiutare',P(32,1,{arms:'M-16 52L0 38 30 34'})+P(72,.75,{back:HL,dress:DR})],
+['leggere','v','leggo leggi legge leggiamo','<path d="M50 30v52M50 30q-20-10-42-4v52q22-6 42 4 20-10 42-4V26q-22-6-42 4z" fill="#fff"/><path d="M18 40h22M18 50h22M18 60h22M60 40h22M60 50h22M60 60h22" stroke-width="3"/>'],
+['lavare','v','lavo lavi lava laviamo lavarsi lavarmi lavarti lavati','<path d="M16 16h44v12H46v8" fill="#ccc"/>'+[40,48,56].map((y,i)=>`<path d="M${44+i*4} ${y}q-4 7 0 9 4-2 0-9z" fill="#4aa3ff" stroke="none"/>`).join('')+hand('translate(6 38) scale(.62)')+hand('translate(84 38) scale(-.62 .62)')],
+['piacere','v','piace piacciono piaceva','<path d="M30 48h14l10-26c6 0 11 5 9 13l-4 13h18c6 0 9 6 7 11l-6 22c-1 4-4 6-8 6H44V48" fill="'+SK+'"/><rect x="18" y="48" width="16" height="40" rx="3" fill="#3fae49"/>'],
+['prendere','v','prendo prendi prende','<rect x="56" y="22" width="30" height="30" fill="#f08a24"/>'+hand('translate(10 36) scale(.62) rotate(-20 50 50)')+'<path d="M48 70l14-14m-10 0h10v10" stroke="#3fae49" stroke-width="5"/>'],
+
+['acqua','n','','<path d="M50 10C36 34 26 48 26 62a24 24 0 0 0 48 0c0-14-10-28-24-52z" fill="#4aa3ff"/><path d="M38 64q2 10 12 12" stroke="#fff"/>'],
+['pane','n','panino panini','<path d="M12 68q0-32 38-32t38 32v10H12z" fill="#e0a95a"/><path d="M34 48l6 10M50 44l4 12M66 48l2 10"/>'],
+['pizza','n','pizze','<path d="M18 24q32-18 64 0L50 90z" fill="#ffd27a"/><path d="M18 24q32-18 64 0" stroke="#c9822f" stroke-width="9"/><circle cx="42" cy="38" r="6" fill="#e8455a" stroke="none"/><circle cx="58" cy="46" r="6" fill="#e8455a" stroke="none"/><circle cx="50" cy="64" r="5" fill="#e8455a" stroke="none"/>'],
+['mela','n','mele frutta','<path d="M50 30c-10-8-36-6-36 22 0 22 18 36 28 32 4-2 12-2 16 0 10 4 28-10 28-32 0-28-26-30-36-22z" fill="#e8455a"/><path d="M50 30q0-14 8-20"/><path d="M56 22q12-10 22 0-10 8-22 0z" fill="#5cbf4a"/>'],
+['latte','n','','<path d="M30 34l10-18h20l10 18v54H30z" fill="#fff"/><path d="M30 34h40M40 16l4 18"/><rect x="38" y="50" width="24" height="18" fill="#4aa3ff" stroke="none"/>'],
+['gelato','n','gelati','<path d="M32 50l18 40 18-40z" fill="#e0a95a"/><path d="M40 60l16 10M44 70l10-8"/><circle cx="50" cy="36" r="19" fill="#ff9ec7"/>'],
+['biscotto','n','biscotti merenda','<circle cx="50" cy="50" r="34" fill="#e0a95a"/>'+[[38,38],[60,40],[46,60],[64,62],[30,56]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4" fill="#5a3a1e" stroke="none"/>`).join('')],
+['casa','n','case','<path d="M22 46v40h56V46" fill="#fff"/><path d="M8 50L50 14l42 36z" fill="#e8455a"/><rect x="42" y="60" width="16" height="26" fill="#f08a24"/><rect x="26" y="56" width="10" height="10" fill="#bfe6ff"/><rect x="64" y="56" width="10" height="10" fill="#bfe6ff"/>'],
+['scuola','n','scuole asilo','<rect x="16" y="42" width="68" height="44" fill="#fff"/><path d="M10 44L50 20l40 24z" fill="#f08a24"/><rect x="42" y="62" width="16" height="24" fill="#2f8fe0"/><rect x="24" y="52" width="12" height="10" fill="#bfe6ff"/><rect x="64" y="52" width="12" height="10" fill="#bfe6ff"/><path d="M50 20V4l14 5-14 5" fill="#e8455a"/>'],
+['bagno','n','toilette water pipì cacca gabinetto','<rect x="58" y="10" width="22" height="30" rx="3" fill="#fff"/><path d="M22 42h56q0 26-20 30l4 16H40l4-16q-22-4-22-30z" fill="#fff"/><path d="M28 42q22 12 44 0" stroke="#bfe6ff"/>'],
+['letto','n','letti',BED+'<rect x="30" y="56" width="62" height="12" rx="5" fill="#7fb2ff"/><rect x="12" y="54" width="18" height="12" rx="5" fill="#fff"/>'],
+['palla','n','pallone palle','<circle cx="50" cy="50" r="36" fill="#ff5a5a"/><path d="M14 50q36 16 72 0M50 14q-16 36 0 72"/>'],
+['libro','n','libri','<rect x="24" y="14" width="52" height="72" rx="4" fill="#e8455a"/><path d="M33 14v72"/><rect x="42" y="28" width="24" height="14" fill="#fff"/>'],
+['televisione','n','tv tele cartoni','<rect x="10" y="24" width="80" height="54" rx="6" fill="#bfe6ff"/><path d="M36 90h28M50 78v12M36 8l14 16 14-16"/>'],
+['telefono','n','cellulare telefonino tablet','<rect x="30" y="8" width="40" height="84" rx="8" fill="#fff"/><rect x="36" y="18" width="28" height="56" fill="#bfe6ff" stroke="none"/><path d="M44 82h12"/>'],
+['macchina','n','auto automobile','<path d="M8 68V54l12-4 12-16h34l12 16 14 4v14z" fill="#e8455a"/><path d="M36 38h12v12H28zM56 38h9l8 12H56z" fill="#bfe6ff"/><circle cx="28" cy="70" r="10" fill="#fff"/><circle cx="72" cy="70" r="10" fill="#fff"/>'],
+['parco','n','giardino parchi','<rect x="30" y="50" width="9" height="38" fill="#8b5a2b"/><circle cx="34" cy="38" r="24" fill="#5cbf4a"/><path d="M56 66h36M56 56h36M60 66v20M88 66v20"/><path d="M6 88h88"/>'],
+['musica','n','canzone canzoni','<path d="M38 72V24l42-8v48"/><path d="M38 34l42-8" stroke-width="8"/><circle cx="29" cy="72" r="10" fill="#16181c"/><circle cx="71" cy="64" r="10" fill="#16181c"/>'],
+['pancia','n','stomaco','<path d="M28 14v20q-10 16-10 34 0 20 32 20t32-20q0-18-10-34V14" fill="'+SK+'"/><circle cx="50" cy="62" r="3" fill="#16181c"/>'],
+['testa','n','','<circle cx="50" cy="46" r="30" fill="'+SK+'"/><path d="M20 42q4-24 30-24t30 24q-14-12-30-10t-30 10z" fill="#5a3a1e"/><path d="M36 88q0-12 14-12t14 12"/>'],
+
+['grande','a','grandi','<circle cx="44" cy="54" r="34" fill="#2f8fe0"/><circle cx="88" cy="80" r="7" fill="#fff"/>'],
+['piccolo','a','piccola piccoli piccole','<circle cx="34" cy="46" r="26" fill="#fff"/><circle cx="76" cy="74" r="13" fill="#2f8fe0"/>'],
+['felice','a','contento contenta contenti felici bene',face(EY+'<path d="M30 58q20 22 40 0"/>')],
+['triste','a','tristi',face(EY+'<path d="M34 72q16-14 32 0"/><path d="M36 52q-5 9 0 11 5-2 0-11z" fill="#4aa3ff" stroke="none"/>')],
+['arrabbiato','a','arrabbiata arrabbiati',face(EY+'<path d="M26 30l16 7M74 30l-16 7M34 70q16-10 32 0"/>','#ff8a6b')],
+['stanco','a','stanca stanchi sonno',face('<path d="M29 44h14M57 44h14"/><ellipse cx="50" cy="66" rx="7" ry="9" fill="#a33"/>')+'<text x="74" y="22" font-size="20" font-weight="900" font-family="Arial" fill="#16181c" stroke="none">z</text>'],
+['male','a','dolore fa_male',face('<path d="M31 37l10 10M41 37l-10 10M59 37l10 10M69 37l-10 10M30 66q5-6 10 0t10 0 10 0 10 0"/>')+'<path d="M84 6l-8 14h8l-8 14" stroke="#e8455a" stroke-width="4"/>'],
+['caldo','a','calda caldi','<rect x="40" y="10" width="20" height="60" rx="10" fill="#fff"/><circle cx="50" cy="76" r="15" fill="#e8455a"/><rect x="46" y="26" width="8" height="46" fill="#e8455a" stroke="none"/><path d="M74 28q6 6 0 12t0 12M84 28q6 6 0 12t0 12" stroke="#e8455a"/>'],
+['freddo','a','fredda freddi','<rect x="30" y="10" width="20" height="60" rx="10" fill="#fff"/><circle cx="40" cy="76" r="15" fill="#2f8fe0"/><rect x="36" y="54" width="8" height="18" fill="#2f8fe0" stroke="none"/><path d="M78 14v34M63 22l30 18M63 40l30-18" stroke="#2f8fe0"/>'],
+['buono','a','buona buoni buone',face(EY+'<path d="M30 58q20 20 40 0z" fill="#a33"/><path d="M52 64q8 10 14 0" fill="#ff8aa0"/>')],
+
+['ciao','s','buongiorno salve arrivederci',hand('translate(8 6) scale(.9)')+'<path d="M10 22q-6 10 0 20M90 12q6 10 0 20" stroke="#e8559a"/>'],
+['grazie','s','',HEART(50,34,3.2,'#e8559a')+'<path d="M80 10l3 7 7 3-7 3-3 7-3-7-7-3 7-3z" fill="#ffd84d"/>'],
+['per favore','s','perfavore prego',`<path d="M48 12c-4 0-6 4-7 8l-12 40-10 26h29z" fill="${SK}"/><path d="M52 12c4 0 6 4 7 8l12 40 10 26H52z" fill="${SK}"/>`],
+['sì','s','ok va_bene','<circle cx="50" cy="50" r="38" fill="#3fae49"/><path d="M30 52l14 14 28-30" stroke="#fff" stroke-width="9"/>'],
+['no','s','non','<circle cx="50" cy="50" r="38" fill="#e8455a"/><path d="M34 34l32 32M66 34L34 66" stroke="#fff" stroke-width="9"/>'],
+['basta','s','stop fermo','<path d="M32 8h36l24 24v36L68 92H32L8 68V32z" fill="#e8455a"/>'+hand('translate(18 16) scale(.64)')],
+['ancora','s','altro altra di_più','<path d="M50 18v64M18 50h64" stroke="#3fae49" stroke-width="14"/>'],
+
+['cosa','q','che_cosa cos\'',Q('<rect x="48" y="44" width="40" height="40" fill="#f08a24"/><path d="M48 58h40M68 44v40"/>')],
+['dove','q','dov\'',Q('<path d="M68 90S46 64 46 48a22 22 0 0 1 44 0c0 16-22 42-22 42z" fill="#e8455a"/><circle cx="68" cy="48" r="8" fill="#fff"/>')],
+['chi','q','',Q('<circle cx="68" cy="40" r="15" fill="'+SK+'"/><path d="M42 90q0-28 26-28t26 28z" fill="#fff"/>')],
+['quando','q','',Q('<circle cx="66" cy="58" r="28" fill="#fff"/><path d="M66 40v18l12 8"/>')],
+['perché','q','perche',Q('<path d="M56 30h34v40H56z" fill="#fff" stroke-dasharray="6 6"/>')],
+['come','q','com\'',Q('<path d="M58 72l10-34 10 34M62 60h12" stroke="#2f8fe0" stroke-width="5"/>')]
+];
+const FW=new Set("il lo la i gli le l' un uno una un' di d' a ad da in con su per tra fra e ed o ma che del dello della dei degli delle al allo alla ai agli alle all' dal dallo dalla dai dagli dalle dall' nel nello nella nei negli nelle nell' sul sullo sulla sui sugli sulle col si vi ne c' anche poi molto un po' po' mio mia tuo tua suo sua".split(' '));
+const MAP=new Map();
+V.forEach((r,i)=>{const e={k:r[0],c:r[1],s:r[3],i};V[i]=e;[r[0],...r[2].split(' ').filter(Boolean)].forEach(a=>{a=a.replace(/_/g,' ');if(!MAP.has(a))MAP.set(a,e)})});
+
+const store={get(k,d){try{const v=localStorage.getItem('caa-'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('caa-'+k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let foto=store.get('foto',{});
+const AC=new Map(Object.entries(store.get('aras',{})));
+let arasOK=location.protocol.startsWith('http')&&!/claude|anthropic/.test(location.hostname);
+const opt=Object.assign({maiu:true,art:true,size:'M'},store.get('opt',{}));
+let edit=false,items=[];
+
+const deacc=w=>w.normalize('NFD').replace(/[̀-ͯ]/g,'');
+function tokens(t){
+  const out=[];
+  t.toLowerCase().replace(/[’‘`]/g,"'").split(/[\s,.;:!?¡¿"()«»\[\]\-–—/]+/).forEach(raw=>{
+    if(!raw)return;
+    const m=raw.match(/^([a-zà-ù]+')(.+)$/);
+    if(m)out.push(m[1],m[2].replace(/'+$/,''));else out.push(raw.replace(/^'+/,''));
+  });
+  return out.filter(Boolean);
+}
+const look=w=>MAP.get(w)||MAP.get(deacc(w))||MAP.get(w.replace(/'$/,''));
+function parse(t){
+  const tk=tokens(t),res=[];
+  for(let i=0;i<tk.length;i++){
+    const two=tk[i]+' '+(tk[i+1]||'');
+    if(tk[i+1]&&MAP.has(two)){res.push({w:two,e:MAP.get(two)});i++;continue}
+    const w=tk[i],e=look(w);
+    if(e)res.push({w:/'$/.test(w)?e.k:w,e});
+    else if(FW.has(w))res.push({w,fw:true});
+    else res.push({w});
+  }
+  return res;
+}
+function picFor(it){
+  const f=foto[it.w]||(it.e&&foto[it.e.k]);
+  if(f)return `<img src="${esc(f)}" alt="">`;
+  if(it.e)return svg(it.e.s);
+  const id=AC.get(it.w);
+  if(typeof id==='number')return `<img src="https://static.arasaac.org/pictograms/${id}/${id}_300.png" alt="">`;
+  return '';
+}
+function cardHTML(it,i,attr='data-i'){
+  if(it.fw)return `<button class="card fw" type="button" ${attr}="${i}"><span class="fwt">${esc(it.w)}</span></button>`;
+  const p=picFor(it),unk=!p;
+  const cls=it.e?'c-'+it.e.c:(typeof AC.get(it.w)==='number'?'c-n':'');
+  return `<button class="card ${cls}${unk?' unk':''}" type="button" ${attr}="${i}" aria-label="${esc(it.w)}"><span class="pic">${unk?(edit?'tocca per<br>la foto':'nessun<br>simbolo'):p}</span><span class="lab">${esc(it.w)}</span></button>`;
+}
+function render(){
+  const t=$('#frase').value;
+  items=parse(t);
+  const shown=items.map((it,i)=>[it,i]).filter(([it])=>opt.art||!it.fw);
+  $('#strip').innerHTML=shown.length?shown.map(([it,i])=>cardHTML(it,i)).join(''):'<p class="empty">Qui compariranno i simboli della frase.</p>';
+  $('#aras-credit').hidden=!items.some(it=>!it.e&&typeof AC.get(it.w)==='number');
+  const unk=items.filter(it=>!it.e&&!it.fw&&!foto[it.w]);
+  unk.forEach(it=>aras(it.w));
+  const miss=unk.filter(it=>typeof AC.get(it.w)!=='number').map(it=>it.w);
+  $('#nota').textContent=miss.length?`Senza simbolo: ${miss.join(', ')}. Tocca il cartoncino per dargli una foto.`:'';
+  store.set('frase',t);
+}
+async function aras(w){
+  if(!arasOK||AC.has(w))return;
+  AC.set(w,'…');
+  const q=encodeURIComponent(w);
+  for(const u of[`https://api.arasaac.org/v1/pictograms/it/bestsearch/${q}`,`https://api.arasaac.org/v1/pictograms/it/search/${q}`,`https://api.arasaac.org/api/pictograms/it/search/${q}`]){
+    try{
+      const r=await fetch(u);
+      if(r.ok){const j=await r.json();const id=Array.isArray(j)&&j[0]&&Number(j[0]._id);if(id){AC.set(w,id);saveAC();render();return}}
+    }catch(e){arasOK=false;AC.delete(w);render();return}
+  }
+  AC.set(w,null);saveAC();
+}
+function saveAC(){const o={};AC.forEach((v,k)=>{if(v!=='…')o[k]=v});store.set('aras',o)}
+
+function say(t){try{const s=window.speechSynthesis;if(!s)return;s.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='it-IT';u.rate=.9;const v=s.getVoices().find(v=>/^it/i.test(v.lang));if(v)u.voice=v;s.speak(u)}catch(e){}}
+function flash(el){el.classList.add('say');setTimeout(()=>el.classList.remove('say'),180)}
+
+/* foglio foto */
+let target='';
+function openSheet(w){
+  target=w;
+  $('#sh-t').textContent=`Simbolo per “${w}”`;
+  $('#sh-p').textContent=foto[w]?'Questa parola usa una tua foto.':'Scegli una foto dal telefono: verrà usata ogni volta che scrivi questa parola.';
+  $('#sh-via').hidden=!foto[w];
+  $('#sheet').classList.add('open');$('#sh-foto').focus();
+}
+const close=()=>$('#sheet').classList.remove('open');
+$('#sh-chiudi').onclick=close;
+$('#sheet').onclick=e=>{if(e.target.id==='sheet')close()};
+$('#sh-foto').onclick=()=>$('#file').click();
+$('#sh-via').onclick=()=>{delete foto[target];store.set('foto',foto);close();render();renderGrid()};
+$('#file').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const url=URL.createObjectURL(f),img=new Image();
+  img.onload=()=>{
+    const c=document.createElement('canvas'),S=260;c.width=c.height=S;
+    const m=Math.min(img.width,img.height);
+    c.getContext('2d').drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,S,S);
+    foto[target]=c.toDataURL('image/jpeg',.82);store.set('foto',foto);URL.revokeObjectURL(url);
+    e.target.value='';close();render();renderGrid();
+  };
+  img.src=url;
+};
+
+/* striscia */
+$('#strip').onclick=e=>{
+  const b=e.target.closest('.card');if(!b)return;
+  const it=items[+b.dataset.i];if(!it)return;
+  if(edit&&!it.fw)return openSheet(it.e&&!foto[it.w]?it.e.k:it.w);
+  if(!picFor(it)&&!it.fw)return openSheet(it.w);
+  flash(b);say(it.w);
+};
+$('#frase').addEventListener('input',render);
+$('#leggi').onclick=()=>say(items.map(it=>it.w).join(' '));
+$('#svuota').onclick=()=>{$('#frase').value='';render();$('#frase').focus()};
+$('#grande').onclick=()=>{document.body.classList.add('big');scrollTo(0,0)};
+$('#exit').onclick=()=>document.body.classList.remove('big');
+
+function applyOpt(){
+  document.body.classList.toggle('maiu',opt.maiu);
+  $('#maiu').setAttribute('aria-pressed',opt.maiu);
+  $('#art').setAttribute('aria-pressed',opt.art);
+  const R=document.documentElement;['S','M','L'].forEach(s=>R.classList.toggle('size-'+s,s===opt.size));
+  document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===opt.size));
+  store.set('opt',opt);
+}
+$('#maiu').onclick=()=>{opt.maiu=!opt.maiu;applyOpt()};
+$('#art').onclick=()=>{opt.art=!opt.art;applyOpt();render()};
+$('#mod').onclick=()=>{edit=!edit;$('#mod').setAttribute('aria-pressed',edit);document.body.classList.toggle('edit',edit);render();renderGrid()};
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{opt.size=b.dataset.s;applyOpt()});
+
+/* esempi */
+const ES=['io voglio bere acqua','mi fa male la pancia','andiamo al parco a giocare con la palla','sono stanco, voglio dormire','dov\'è la mamma?','basta televisione, grazie'];
+$('#esempi').innerHTML=ES.map(s=>`<button class="chip" type="button">${esc(s)}</button>`).join('');
+$('#esempi').onclick=e=>{const b=e.target.closest('.chip');if(b){$('#frase').value=b.textContent;render()}};
+
+/* tabella */
+let tab='p';
+function renderGrid(){
+  $('#tabs').innerHTML=Object.entries(CAT).map(([c,n])=>`<button class="tab" role="tab" type="button" data-c="${c}" aria-selected="${c===tab}" style="--t:var(--${c})">${esc(n)}</button>`).join('');
+  $('#grid').innerHTML=V.filter(e=>e.c===tab).map(e=>cardHTML({w:e.k,e},e.i,'data-v')).join('');
+}
+$('#tabs').onclick=e=>{const b=e.target.closest('.tab');if(b){tab=b.dataset.c;renderGrid()}};
+$('#grid').onclick=e=>{
+  const b=e.target.closest('.card');if(!b)return;
+  const en=V[+b.dataset.v];
+  if(edit)return openSheet(en.k);
+  const f=$('#frase');f.value=(f.value.trim()?f.value.trim()+' ':'')+en.k;render();flash(b);say(en.k);
+};
+$('#legend').innerHTML=Object.entries(CAT).map(([c,n])=>`<li><i style="border-color:var(--${c})"></i>${esc(n)}</li>`).join('')+'<li><i style="border-color:var(--f);border-style:dashed"></i>Articoli e paroline</li>';
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){close();document.body.classList.remove('big')}});
+$('#frase').value=store.get('frase','io voglio bere acqua');
+applyOpt();render();renderGrid();
+try{speechSynthesis.getVoices()}catch(e){}
+}
+</script>
+</body>
+</html>
