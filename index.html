@@ -57,6 +57,11 @@ textarea:focus-visible,button:focus-visible{outline:4px solid var(--a);outline-o
 .card.unk{border-style:dashed;border-color:#16181c}
 .unk .pic{display:grid;place-items:center;color:#8a8577;font-size:calc(var(--card)*.12);text-align:center;line-height:1.2}
 .c-p{border-color:var(--p)}.c-v{border-color:var(--v)}.c-n{border-color:var(--n)}.c-a{border-color:var(--a)}.c-s{border-color:var(--s)}.c-q{border-color:var(--q)}
+.slot{display:flex;flex-direction:column;gap:6px;flex:none}
+.dl{font:inherit;font-weight:700;font-size:14px;min-height:38px;padding:0 6px;border-radius:10px;border:2px solid var(--ink);background:var(--bg);color:var(--ink);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
+.dl svg{width:16px;height:16px;flex:none}
+.dl:disabled{opacity:.5;cursor:wait}
+.big .dl{display:none}
 .edit .card{outline:3px dashed var(--a);outline-offset:3px}
 .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:thin}
 .tab{flex:none;font:inherit;font-weight:700;font-size:16px;min-height:46px;padding:0 16px;border-radius:12px;border:3px solid var(--t,var(--line));background:var(--bg);color:var(--ink);cursor:pointer}
@@ -277,7 +282,8 @@ function render(){
   const t=$('#frase').value;
   items=parse(t);
   const shown=items.map((it,i)=>[it,i]).filter(([it])=>opt.art||!it.fw);
-  $('#strip').innerHTML=shown.length?shown.map(([it,i])=>cardHTML(it,i)).join(''):'<p class="empty">Qui compariranno i simboli della frase.</p>';
+  $('#strip').innerHTML=shown.length?shown.map(([it,i])=>`<div class="slot">${cardHTML(it,i)}<button class="dl" type="button" data-dl="${i}" aria-label="Scarica “${esc(it.w)}” come immagine JPG">${DLI}JPG</button></div>`).join(''):'<p class="empty">Qui compariranno i simboli della frase.</p>';
+  clearTimeout(preT);preT=setTimeout(()=>shown.forEach(([it])=>getJPG(it).catch(()=>{})),500);
   $('#aras-credit').hidden=!items.some(it=>!it.e&&typeof AC.get(it.w)==='number');
   const unk=items.filter(it=>!it.e&&!it.fw&&!foto[it.w]);
   unk.forEach(it=>aras(it.w));
@@ -329,8 +335,76 @@ $('#file').onchange=e=>{
   img.src=url;
 };
 
+/* scarica come JPG */
+const DLI='<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>';
+const COL={p:'#f2c200',v:'#3fae49',n:'#f08a24',a:'#2f8fe0',s:'#e8559a',q:'#8a5cd6'};
+const JPG=new Map(),READY=new Map();let preT=0;
+const jkey=it=>(opt.maiu?'U':'l')+'|'+it.w+'|'+(it.fw?'fw':picFor(it));
+function srcFor(it){
+  const f=foto[it.w]||(it.e&&foto[it.e.k]);
+  if(f)return[f];
+  if(it.e)return['data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg(it.e.s).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" '))];
+  const id=AC.get(it.w);
+  if(typeof id==='number')return[`https://static.arasaac.org/pictograms/${id}/${id}_500.png`,`https://static.arasaac.org/pictograms/${id}/${id}_300.png?cors=1`];
+  return[];
+}
+const loadImg=src=>new Promise((ok,ko)=>{const im=new Image();if(/^https?:/.test(src))im.crossOrigin='anonymous';im.onload=()=>ok(im);im.onerror=ko;im.src=src});
+function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
+async function makeJPG(it){
+  try{await document.fonts.load('700 80px "Atkinson Hyperlegible"')}catch(e){}
+  const W=600,B=36,pad=42,s=W-2*B-2*pad,H=it.fw?360:B+pad+s+140+B;
+  const t=opt.maiu?it.w.toUpperCase():it.w;
+  let im=null;
+  if(!it.fw){const L=srcFor(it);for(const u of L){try{im=await loadImg(u);break}catch(e){}}if(L.length&&!im)throw new Error('img')}
+  const cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const c=cv.getContext('2d');
+  c.fillStyle='#fff';c.fillRect(0,0,W,H);
+  const unk=!it.fw&&!im;
+  c.strokeStyle=it.e?COL[it.e.c]:it.fw?'#9aa3ad':typeof AC.get(it.w)==='number'?COL.n:'#16181c';
+  c.lineWidth=B;if(it.fw||unk)c.setLineDash([46,26]);
+  rr(c,B/2,B/2,W-B,H-B,44);c.stroke();c.setLineDash([]);
+  if(im){
+    const m=Math.min(im.naturalWidth||im.width,im.naturalHeight||im.height)||1,iw=im.naturalWidth||im.width,ih=im.naturalHeight||im.height;
+    c.save();rr(c,B+pad,B+pad,s,s,16);c.clip();
+    c.drawImage(im,(iw-m)/2,(ih-m)/2,m,m,B+pad,B+pad,s,s);c.restore();
+  }
+  let fs=it.fw?130:84;const max=W-2*B-40;
+  c.fillStyle='#16181c';c.textAlign='center';c.textBaseline='middle';
+  do{c.font=`700 ${fs}px "Atkinson Hyperlegible",Arial,sans-serif`;fs-=4}while(c.measureText(t).width>max&&fs>20);
+  c.fillText(t,W/2,it.fw?H/2:B+pad+s+68);
+  return new Promise((ok,ko)=>cv.toBlob(b=>b?ok(b):ko(new Error('blob')),'image/jpeg',.92));
+}
+function getJPG(it){
+  const k=jkey(it);
+  if(!JPG.has(k)){if(JPG.size>150){JPG.clear();READY.clear()}
+    JPG.set(k,makeJPG(it).then(b=>{READY.set(k,b);return b},e=>{JPG.delete(k);throw e}))}
+  return JPG.get(k);
+}
+function download(blob,name){
+  const a=document.createElement('a'),u=URL.createObjectURL(blob);
+  a.href=u;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),5000);
+}
+function deliver(blob,name){
+  const file=new File([blob],name,{type:'image/jpeg'});
+  if(matchMedia('(pointer:coarse)').matches&&navigator.canShare&&navigator.canShare({files:[file]})){
+    navigator.share({files:[file]}).catch(e=>{if(e.name!=='AbortError')download(blob,name)});return;
+  }
+  download(blob,name);
+}
+async function saveCard(it,btn){
+  const name='simbolo-'+(deacc(it.w.toLowerCase()).replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'parola')+'.jpg';
+  const ready=READY.get(jkey(it));
+  if(ready)return deliver(ready,name);
+  btn.disabled=true;
+  try{deliver(await getJPG(it),name)}
+  catch(e){alert('Non riesco a creare l\'immagine di questo simbolo. Riprova tra qualche secondo.')}
+  finally{btn.disabled=false}
+}
+
 /* striscia */
 $('#strip').onclick=e=>{
+  const d=e.target.closest('.dl');
+  if(d){const it=items[+d.dataset.dl];if(it)saveCard(it,d);return}
   const b=e.target.closest('.card');if(!b)return;
   const it=items[+b.dataset.i];if(!it)return;
   if(edit&&!it.fw)return openSheet(it.e&&!foto[it.w]?it.e.k:it.w);
